@@ -355,8 +355,8 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjZ3lteGJ2bXlveXltZGFvbHpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyMjc2MjQsImV4cCI6MjA5OTgwMzYyNH0.homP4_HKMynv6TA1-utVzTh3xFHD27lKxEOI-taveVg'
     // ============================================================
 
-    // Init Supabase
-    const supabase = (SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY')
+    // Init Supabase - use 'sb' to avoid conflict with the CDN global 'supabase'
+    const sb = (SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY')
       ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
       : null;
 
@@ -368,7 +368,7 @@
     let currentClaim = null;
     let currentPane = 'fan';
     let realtimeChannel = null;
-    let isConfigured = !!supabase;
+    let isConfigured = !!sb;
 
     // ============================================================
     // INITIALIZATION
@@ -382,7 +382,7 @@
       }
 
       // Auth listener
-      supabase.auth.onAuthStateChange(async (event, session) => {
+      sb.auth.onAuthStateChange(async (event, session) => {
         currentUser = session?.user || null;
         if (currentUser) {
           await loadProfile();
@@ -398,7 +398,7 @@
       });
 
       // Check existing session
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await sb.auth.getSession();
       currentUser = session?.user || null;
       if (currentUser) {
         await loadProfile();
@@ -449,7 +449,7 @@
     // ============================================================
     async function loadProfile() {
       if (!currentUser) return;
-      const { data, error } = await supabase
+      const { data, error } = await sb
         .from('profiles')
         .select('*')
         .eq('id', currentUser.id)
@@ -463,12 +463,12 @@
     }
 
     async function signUp(email, password, clubName) {
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await sb.auth.signUp({ email, password });
       if (error) throw error;
       
       // Create profile immediately
       if (data.user) {
-        const { error: pErr } = await supabase.from('profiles').insert({
+        const { error: pErr } = await sb.from('profiles').insert({
           id: data.user.id,
           club_name: clubName,
           email: email
@@ -479,13 +479,13 @@
     }
 
     async function signIn(email, password) {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
       if (error) throw error;
       return data;
     }
 
     async function signOut() {
-      await supabase.auth.signOut();
+      await sb.auth.signOut();
       currentUser = null;
       currentProfile = null;
       showToast('Signed out', 'info');
@@ -496,9 +496,9 @@
     // INVENTORY (Supabase)
     // ============================================================
     async function loadInventory() {
-      if (!supabase) return;
+      if (!sb) return;
       try {
-        const { data, error } = await supabase
+        const { data, error } = await sb
           .from('inventory')
           .select(`
             id,
@@ -529,8 +529,8 @@
     }
 
     function setupRealtime() {
-      if (!supabase || realtimeChannel) return;
-      realtimeChannel = supabase
+      if (!sb || realtimeChannel) return;
+      realtimeChannel = sb
         .channel('inventory-live')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory' }, (payload) => {
           console.log('[Realtime]', payload.eventType, payload.new || payload.old);
@@ -832,7 +832,7 @@
 
     async function removeInventoryItem(id) {
       if (!confirm('Remove this listing? Fans will no longer see it.')) return;
-      const { error } = await supabase.from('inventory').delete().eq('id', id);
+      const { error } = await sb.from('inventory').delete().eq('id', id);
       if (error) {
         showToast(error.message, 'error');
         return;
@@ -873,7 +873,7 @@
       btn.disabled = true;
       
       try {
-        const { error } = await supabase.from('inventory').insert({
+        const { error } = await sb.from('inventory').insert({
           club_id: currentUser.id,
           fixture_name: fixture,
           seats_available: seats,
@@ -1087,7 +1087,7 @@
         if (remaining < 0) remaining = 0;
         
         // Prefer the secure RPC
-        const { data: rpcResult, error: rpcError } = await supabase.rpc('claim_seats', {
+        const { data: rpcResult, error: rpcError } = await sb.rpc('claim_seats', {
           p_inventory_id: currentClaim.itemId,
           p_qty: currentClaim.qty
         });
@@ -1095,7 +1095,7 @@
         if (rpcError) {
           // Fallback to direct update if RPC not present
           console.warn('RPC not available, falling back to update', rpcError.message);
-          const { error: upErr } = await supabase
+          const { error: upErr } = await sb
             .from('inventory')
             .update({ seats_available: remaining })
             .eq('id', currentClaim.itemId);
