@@ -475,9 +475,9 @@
     // ============================================================
     // CONFIG – REPLACE THESE VALUES
     // ============================================================
-    const SUPABASE_URL = 'https://xcgymxbvmyoyymdaolzh.supabase.co'                 // e.g. https://xxxx.sb.co
+    const SUPABASE_URL = 'https://xcgymxbvmyoyymdaolzh.supabase.co'
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjZ3lteGJ2bXlveXltZGFvbHpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyMjc2MjQsImV4cCI6MjA5OTgwMzYyNH0.homP4_HKMynv6TA1-utVzTh3xFHD27lKxEOI-taveVg'
-    const STRIPE_PUBLISHABLE_KEY = 'YOUR_STRIPE_PUBLISHABLE_KEY'  // pk_test_... or pk_live_...
+    const STRIPE_PUBLISHABLE_KEY = 'YOUR_STRIPE_PUBLISHABLE_KEY'  // optional – demo mode works without it
     // Edge Functions base (same project)
     const FUNCTIONS_URL = SUPABASE_URL.replace(/\/$/, '') + '/functions/v1'
     // ============================================================
@@ -983,17 +983,6 @@
       }).join('');
     }
 
-    async function removeInventoryItem(id) {
-      if (!confirm('Remove this listing? Fans will no longer see it.')) return;
-      const { error } = await sb.from('inventory').delete().eq('id', id);
-      if (error) {
-        showToast(error.message, 'error');
-        return;
-      }
-      showToast('Listing removed', 'success');
-      // Realtime will trigger reload, but force for speed
-      await loadInventory();
-    }
 
     // ============================================================
     // RELEASE INVENTORY
@@ -1559,6 +1548,83 @@
       // Stripe Connect is optional for demos – hide the banner for now
       return '';
     }
+
+
+    // Curated crest URLs (Wikimedia). Fallback generates a clean monogram.
+    const CLUB_CRESTS = {
+      "Birmingham City": "https://upload.wikimedia.org/wikipedia/en/6/68/Birmingham_City_FC_logo.svg",
+      "Blackburn Rovers": "https://upload.wikimedia.org/wikipedia/en/0/0f/Blackburn_Rovers.svg",
+      "Bristol City": "https://upload.wikimedia.org/wikipedia/en/0/00/Bristol_City_FC.svg",
+      "Charlton Athletic": "https://upload.wikimedia.org/wikipedia/en/5/5a/Charlton_Athletic.svg",
+      "Coventry City": "https://upload.wikimedia.org/wikipedia/en/9/94/Coventry_City_FC_logo.svg",
+      "Derby County": "https://upload.wikimedia.org/wikipedia/en/4/4a/Derby_County_crest.svg",
+      "Hull City": "https://upload.wikimedia.org/wikipedia/en/5/54/Hull_City_A.F.C._logo.svg",
+      "Ipswich Town": "https://upload.wikimedia.org/wikipedia/en/4/43/Ipswich_Town.svg",
+      "Leicester City": "https://upload.wikimedia.org/wikipedia/en/2/2d/Leicester_City_crest.svg",
+      "Middlesbrough": "https://upload.wikimedia.org/wikipedia/en/2/2c/Middlesbrough_FC_crest.svg",
+      "Millwall": "https://upload.wikimedia.org/wikipedia/en/7/71/Millwall_FC_logo.svg",
+      "Norwich City": "https://upload.wikimedia.org/wikipedia/en/8/8c/Norwich_City.svg",
+      "Oxford United": "https://upload.wikimedia.org/wikipedia/en/3/3e/Oxford_United_FC_logo.svg",
+      "Portsmouth": "https://upload.wikimedia.org/wikipedia/en/3/3c/Portsmouth_FC_logo.svg",
+      "Preston North End": "https://upload.wikimedia.org/wikipedia/en/8/82/Preston_North_End_FC.svg",
+      "Queens Park Rangers": "https://upload.wikimedia.org/wikipedia/en/3/31/Queens_Park_Rangers_crest.svg",
+      "Sheffield United": "https://upload.wikimedia.org/wikipedia/en/9/9c/Sheffield_United_FC_logo.svg",
+      "Sheffield Wednesday": "https://upload.wikimedia.org/wikipedia/en/8/88/Sheffield_Wednesday_badge.svg",
+      "Southampton": "https://upload.wikimedia.org/wikipedia/en/c/c9/FC_Southampton.svg",
+      "Stoke City": "https://upload.wikimedia.org/wikipedia/en/2/29/Stoke_City_FC.svg",
+      "Swansea City": "https://upload.wikimedia.org/wikipedia/en/f/f9/Swansea_City_AFC_logo.svg",
+      "Watford": "https://upload.wikimedia.org/wikipedia/en/e/e2/Watford.svg",
+      "West Bromwich Albion": "https://upload.wikimedia.org/wikipedia/en/8/8b/West_Bromwich_Albion.svg",
+      "Wrexham": "https://upload.wikimedia.org/wikipedia/en/3/3d/Wrexham_A.F.C._logo.svg",
+      "AFC Wimbledon": "https://upload.wikimedia.org/wikipedia/en/5/5c/AFC_Wimbledon.svg",
+      "Barnsley": "https://upload.wikimedia.org/wikipedia/en/c/c9/Barnsley_FC.svg",
+      "Blackpool": "https://upload.wikimedia.org/wikipedia/en/d/df/Blackpool_FC_logo.svg",
+      "Bolton Wanderers": "https://upload.wikimedia.org/wikipedia/en/8/82/Bolton_Wanderers_FC_logo.svg",
+      "Bradford City": "https://upload.wikimedia.org/wikipedia/en/3/3c/Bradford_City_AFC.png",
+      "Burton Albion": "https://upload.wikimedia.org/wikipedia/en/5/53/Burton_Albion_FC_logo.svg",
+      "Cardiff City": "https://upload.wikimedia.org/wikipedia/en/3/3c/Cardiff_City_crest.svg",
+      "Doncaster Rovers": "https://upload.wikimedia.org/wikipedia/en/4/4c/Doncaster_Rovers_FC.svg",
+      "Exeter City": "https://upload.wikimedia.org/wikipedia/en/7/71/Exeter_City_FC.svg",
+      "Huddersfield Town": "https://upload.wikimedia.org/wikipedia/en/7/7d/Huddersfield_Town_A.F.C._logo.svg",
+      "Leyton Orient": "https://upload.wikimedia.org/wikipedia/en/2/21/Leyton_Orient_FC_logo.svg",
+      "Lincoln City": "https://upload.wikimedia.org/wikipedia/en/5/58/Lincoln_City_FC_logo.svg",
+      "Luton Town": "https://upload.wikimedia.org/wikipedia/en/9/9d/Luton_Town_logo.svg",
+      "Mansfield Town": "https://upload.wikimedia.org/wikipedia/en/5/5c/Mansfield_Town_FC.svg",
+      "Northampton Town": "https://upload.wikimedia.org/wikipedia/en/8/8c/Northampton_Town_FC_logo.svg",
+      "Peterborough United": "https://upload.wikimedia.org/wikipedia/en/d/d4/Peterborough_United.svg",
+      "Plymouth Argyle": "https://upload.wikimedia.org/wikipedia/en/a/a8/Plymouth_Argyle_F.C._logo.svg",
+      "Port Vale": "https://upload.wikimedia.org/wikipedia/en/5/5f/Port_Vale_logo.svg",
+      "Reading": "https://upload.wikimedia.org/wikipedia/en/1/11/Reading_FC.svg",
+      "Rotherham United": "https://upload.wikimedia.org/wikipedia/en/c/c0/Rotherham_United_FC.svg",
+      "Stevenage": "https://upload.wikimedia.org/wikipedia/en/4/45/Stevenage_Football_Club.png",
+      "Stockport County": "https://upload.wikimedia.org/wikipedia/en/2/29/Stockport_County_FC_logo.svg",
+      "Wigan Athletic": "https://upload.wikimedia.org/wikipedia/en/4/43/Wigan_Athletic.svg",
+      "Wycombe Wanderers": "https://upload.wikimedia.org/wikipedia/en/f/f3/Wycombe_Wanderers_FC_logo.svg",
+      "Accrington Stanley": "https://upload.wikimedia.org/wikipedia/en/6/63/Accrington_Stanley_F.C._logo.svg",
+      "Barnet": "https://upload.wikimedia.org/wikipedia/en/a/a2/Barnet_FC.svg",
+      "Barrow": "https://upload.wikimedia.org/wikipedia/en/5/5b/Barrow_AFC_logo.svg",
+      "Bristol Rovers": "https://upload.wikimedia.org/wikipedia/en/4/47/Bristol_Rovers_F.C._logo.svg",
+      "Bromley": "https://upload.wikimedia.org/wikipedia/en/7/7c/Bromley_F.C._logo.svg",
+      "Cambridge United": "https://upload.wikimedia.org/wikipedia/en/8/86/Cambridge_United_FC.svg",
+      "Cheltenham Town": "https://upload.wikimedia.org/wikipedia/en/c/c3/Cheltenham_Town_F.C._logo.svg",
+      "Chesterfield": "https://upload.wikimedia.org/wikipedia/en/9/9b/Chesterfield_FC_crest.svg",
+      "Colchester United": "https://upload.wikimedia.org/wikipedia/en/4/48/Colchester_United_FC_logo.svg",
+      "Crawley Town": "https://upload.wikimedia.org/wikipedia/en/8/8b/Crawley_Town_FC_logo.svg",
+      "Crewe Alexandra": "https://upload.wikimedia.org/wikipedia/en/9/9d/Crewe_Alexandra.svg",
+      "Fleetwood Town": "https://upload.wikimedia.org/wikipedia/en/2/2d/Fleetwood_Town_FC.svg",
+      "Gillingham": "https://upload.wikimedia.org/wikipedia/en/2/2e/Gillingham_FC_logo.svg",
+      "Grimsby Town": "https://upload.wikimedia.org/wikipedia/en/7/79/Grimsby_Town_FC.svg",
+      "Harrogate Town": "https://upload.wikimedia.org/wikipedia/en/2/2c/Harrogate_Town_A.F.C._logo.svg",
+      "MK Dons": "https://upload.wikimedia.org/wikipedia/en/d/d3/MK_Dons.svg",
+      "Newport County": "https://upload.wikimedia.org/wikipedia/en/4/45/Newport_County_AFC.png",
+      "Notts County": "https://upload.wikimedia.org/wikipedia/en/4/4c/Notts_County_logo.svg",
+      "Oldham Athletic": "https://upload.wikimedia.org/wikipedia/en/4/4c/Oldham_Athletic.svg",
+      "Salford City": "https://upload.wikimedia.org/wikipedia/en/7/75/Salford_City_FC.svg",
+      "Shrewsbury Town": "https://upload.wikimedia.org/wikipedia/en/0/0c/Shrewsbury_Town_FC.svg",
+      "Swindon Town": "https://upload.wikimedia.org/wikipedia/en/a/a3/Swindon_Town_FC.svg",
+      "Tranmere Rovers": "https://upload.wikimedia.org/wikipedia/en/9/9f/Tranmere_Rovers_FC_logo.svg",
+      "Walsall": "https://upload.wikimedia.org/wikipedia/en/e/ef/Walsall_FC.svg"
+    };
 
     function getClubCrestUrl(clubName) {
       if (CLUB_CRESTS[clubName]) return CLUB_CRESTS[clubName];
