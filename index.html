@@ -306,8 +306,8 @@
     <div onclick="event.stopImmediatePropagation()" class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden modal">
       <div class="px-5 sm:px-7 pt-6 sm:pt-7 pb-4 flex items-center justify-between border-b">
         <div>
-          <h3 class="font-semibold text-xl sm:text-2xl">Release Inventory</h3>
-          <p class="text-xs sm:text-sm text-slate-500">Appears instantly on the Fan View for all fans</p>
+          <h3 id="release-modal-title" class="font-semibold text-xl sm:text-2xl">Release Inventory</h3>
+          <p id="release-modal-subtitle" class="text-xs sm:text-sm text-slate-500">Appears instantly on the Fan View for all fans</p>
         </div>
         <button onclick="closeReleaseModal()" class="text-3xl leading-none text-slate-400 hover:text-slate-600">&times;</button>
       </div>
@@ -328,10 +328,40 @@
           </div>
         </div>
         <div>
-          <label class="block text-[10px] sm:text-xs font-semibold tracking-widest text-slate-500 mb-1.5">PACKAGE DETAILS</label>
-          <textarea id="package-details" rows="3" placeholder="Premium padded seating + 3-course meal + half-time drinks + match programme..."
-                    class="form-input w-full border border-slate-300 rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 text-sm focus:border-amber-400 resize-y"></textarea>
+          <label class="block text-[10px] sm:text-xs font-semibold tracking-widest text-slate-500 mb-2">WHAT'S INCLUDED</label>
+          <div class="grid grid-cols-2 gap-2 sm:gap-2.5" id="package-checkboxes">
+            <label class="flex items-center gap-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl px-3 py-2.5 cursor-pointer transition-colors">
+              <input type="checkbox" value="Padded seats" class="pkg-check rounded border-slate-300 text-amber-600 focus:ring-amber-500">
+              <span class="text-sm text-slate-700">Padded seats</span>
+            </label>
+            <label class="flex items-center gap-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl px-3 py-2.5 cursor-pointer transition-colors">
+              <input type="checkbox" value="Food included" class="pkg-check rounded border-slate-300 text-amber-600 focus:ring-amber-500">
+              <span class="text-sm text-slate-700">Food included</span>
+            </label>
+            <label class="flex items-center gap-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl px-3 py-2.5 cursor-pointer transition-colors">
+              <input type="checkbox" value="Drinks included" class="pkg-check rounded border-slate-300 text-amber-600 focus:ring-amber-500">
+              <span class="text-sm text-slate-700">Drinks included</span>
+            </label>
+            <label class="flex items-center gap-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl px-3 py-2.5 cursor-pointer transition-colors">
+              <input type="checkbox" value="Match programme" class="pkg-check rounded border-slate-300 text-amber-600 focus:ring-amber-500">
+              <span class="text-sm text-slate-700">Match programme</span>
+            </label>
+            <label class="flex items-center gap-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl px-3 py-2.5 cursor-pointer transition-colors">
+              <input type="checkbox" value="Parking" class="pkg-check rounded border-slate-300 text-amber-600 focus:ring-amber-500">
+              <span class="text-sm text-slate-700">Parking</span>
+            </label>
+            <label class="flex items-center gap-2.5 bg-slate-50 hover:bg-slate-100 rounded-xl px-3 py-2.5 cursor-pointer transition-colors">
+              <input type="checkbox" value="Half-time access" class="pkg-check rounded border-slate-300 text-amber-600 focus:ring-amber-500">
+              <span class="text-sm text-slate-700">Half-time access</span>
+            </label>
+          </div>
+          <div class="mt-3">
+            <label class="block text-[10px] sm:text-xs font-semibold tracking-widest text-slate-500 mb-1.5">ADDITIONAL DETAILS <span class="font-normal text-slate-400">(optional)</span></label>
+            <input id="package-notes" type="text" placeholder="e.g. Executive box, dedicated host..."
+                   class="form-input w-full border border-slate-300 rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 text-sm focus:border-amber-400">
+          </div>
         </div>
+        <input type="hidden" id="editing-inventory-id" value="">
       </div>
       <div class="px-5 sm:px-7 pb-5 sm:pb-7 pt-2 flex gap-x-3">
         <button onclick="closeReleaseModal()" class="flex-1 py-3 text-sm font-semibold border border-slate-300 rounded-2xl hover:bg-slate-50">Cancel</button>
@@ -386,7 +416,7 @@
           <i class="fa-brands fa-stripe text-2xl sm:text-3xl"></i>
           <div>
             <div class="font-semibold text-sm sm:text-base">Secure Checkout</div>
-            <div class="text-[9px] sm:text-[10px] text-slate-400 -mt-0.5">Stripe Connect • 85% to club • 15% platform</div>
+            <div class="text-[9px] sm:text-[10px] text-slate-400 -mt-0.5">Demo Mode • Instant voucher</div>
           </div>
         </div>
         <button onclick="closePaymentModal()" class="text-white/70 hover:text-white text-2xl leading-none">&times;</button>
@@ -404,7 +434,7 @@
         <div id="payment-message" class="hidden text-sm text-red-600 bg-red-50 px-3 py-2 rounded-xl mb-3"></div>
 
         <div class="text-[9px] sm:text-[10px] text-center text-slate-400 flex items-center justify-center gap-x-1 mb-2">
-          <i class="fa-solid fa-lock"></i> <span>Payment processed securely by Stripe. Voucher issued only after success.</span>
+          <i class="fa-solid fa-lock"></i> <span>Demo checkout — no real payment is taken. Voucher issued instantly.</span>
         </div>
       </div>
       <div class="px-5 sm:px-6 pb-5 sm:pb-6">
@@ -445,8 +475,8 @@
     // ============================================================
     // CONFIG – REPLACE THESE VALUES
     // ============================================================
-    const SUPABASE_URL = 'https://xcgymxbvmyoyymdaolzh.supabase.co'                 // e.g. https://xxxx.sb.co
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjZ3lteGJ2bXlveXltZGFvbHpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyMjc2MjQsImV4cCI6MjA5OTgwMzYyNH0.homP4_HKMynv6TA1-utVzTh3xFHD27lKxEOI-taveVg'
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL'                 // e.g. https://xxxx.sb.co
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'
     const STRIPE_PUBLISHABLE_KEY = 'YOUR_STRIPE_PUBLISHABLE_KEY'  // pk_test_... or pk_live_...
     // Edge Functions base (same project)
     const FUNCTIONS_URL = SUPABASE_URL.replace(/\/$/, '') + '/functions/v1'
@@ -568,7 +598,7 @@
       }
     }
 
-    async function signUp(email, password, clubName) {
+    async function signUp(email, password, clubName, contactName) {
       const { data, error } = await sb.auth.signUp({ email, password });
       if (error) throw error;
       
@@ -577,7 +607,8 @@
         const { error: pErr } = await sb.from('profiles').insert({
           id: data.user.id,
           club_name: clubName,
-          email: email
+          email: email,
+          contact_name: contactName || null
         });
         if (pErr) console.warn('Profile insert:', pErr.message);
       }
@@ -614,7 +645,7 @@
             standby_price,
             created_at,
             club_id,
-            profiles ( club_name )
+            profiles ( club_name, email, contact_name )
           `)
           .gt('seats_available', 0)
           .order('created_at', { ascending: false });
@@ -729,6 +760,10 @@
               <div id="auth-signup" class="hidden">
                 <div class="space-y-4">
                   <div>
+                    <label class="text-[10px] sm:text-xs font-semibold tracking-widest text-slate-500 block mb-1.5">YOUR NAME</label>
+                    <input id="signup-name" type="text" placeholder="e.g. Sarah Mitchell" class="form-input w-full border border-slate-300 rounded-2xl px-4 py-2.5 text-sm">
+                  </div>
+                  <div>
                     <label class="text-[10px] sm:text-xs font-semibold tracking-widest text-slate-500 block mb-1.5">CLUB NAME</label>
                     <input id="signup-club" type="text" placeholder="e.g. Old Trafford Hospitality" class="form-input w-full border border-slate-300 rounded-2xl px-4 py-2.5 text-sm">
                   </div>
@@ -766,7 +801,7 @@
               <h1 class="section-header text-2xl sm:text-3xl">Club Portal</h1>
               <span class="lastminute-badge px-2.5 py-1 rounded-2xl text-[10px] tracking-widest">SECURE</span>
             </div>
-            <p class="text-slate-600 mt-1 text-sm">Welcome, <strong>${currentProfile?.club_name || 'Club'}</strong></p>
+            <p class="text-slate-600 mt-1 text-sm">Welcome, <strong>${currentProfile?.contact_name || currentProfile?.club_name || 'Club'}</strong></p>
           </div>
           <button onclick="signOut()" class="text-sm flex items-center gap-x-2 px-4 py-2 text-slate-600 hover:text-slate-900 self-start sm:self-auto">
             <i class="fa-solid fa-sign-out-alt"></i> <span>Logout</span>
@@ -836,6 +871,11 @@
       document.getElementById('tab-signup').className = tab === 'signup'
         ? 'flex-1 py-2 text-sm font-semibold rounded-xl bg-white shadow-sm text-slate-900'
         : 'flex-1 py-2 text-sm font-semibold rounded-xl text-slate-600';
+      // Auto-populate club name from welcome modal selection
+      if (tab === 'signup' && selectedClub) {
+        const clubInput = document.getElementById('signup-club');
+        if (clubInput && !clubInput.value) clubInput.value = selectedClub + ' Hospitality';
+      }
     }
 
     async function handleLogin() {
@@ -867,13 +907,14 @@
     }
 
     async function handleSignup() {
+      const contactName = document.getElementById('signup-name').value.trim();
       const clubName = document.getElementById('signup-club').value.trim();
       const email = document.getElementById('signup-email').value.trim();
       const password = document.getElementById('signup-password').value;
       const errEl = document.getElementById('signup-error');
       const btn = document.getElementById('signup-btn');
       
-      if (!clubName || !email || !password) {
+      if (!contactName || !clubName || !email || !password) {
         errEl.textContent = 'All fields are required';
         errEl.classList.remove('hidden');
         return;
@@ -889,9 +930,8 @@
       errEl.classList.add('hidden');
       
       try {
-        await signUp(email, password, clubName);
+        await signUp(email, password, clubName, contactName);
         showToast('Club account created! You are now signed in.', 'success');
-        // Auth listener will re-render
       } catch (err) {
         errEl.textContent = err.message || 'Signup failed';
         errEl.classList.remove('hidden');
@@ -929,9 +969,14 @@
             </td>
             <td class="px-4 sm:px-6 py-3.5 text-right text-[11px] text-slate-500 font-medium hidden sm:table-cell">${timeAgo}</td>
             <td class="px-4 sm:px-6 py-3.5 text-right">
-              <button onclick="removeInventoryItem('${item.id}')" class="text-red-400 hover:text-red-600 p-1.5" title="Remove">
-                <i class="fa-solid fa-trash-can fa-sm"></i>
-              </button>
+              <div class="flex items-center justify-end gap-1">
+                <button onclick="editInventoryItem('${item.id}')" class="text-slate-400 hover:text-amber-600 p-1.5" title="Edit">
+                  <i class="fa-solid fa-pen fa-sm"></i>
+                </button>
+                <button onclick="removeInventoryItem('${item.id}')" class="text-red-400 hover:text-red-600 p-1.5" title="Remove">
+                  <i class="fa-solid fa-trash-can fa-sm"></i>
+                </button>
+              </div>
             </td>
           </tr>
         `;
@@ -953,62 +998,126 @@
     // ============================================================
     // RELEASE INVENTORY
     // ============================================================
-    function openReleaseModal() {
+    function openReleaseModal(editItem = null) {
       if (!currentUser) return;
+      document.getElementById('editing-inventory-id').value = '';
+      document.getElementById('release-modal-title').textContent = 'Release Inventory';
+      document.getElementById('release-modal-subtitle').textContent = 'Appears instantly on the Fan View for all fans';
+      document.getElementById('release-submit-btn').textContent = 'Release to Fans →';
+
+      // Reset form
+      document.getElementById('fixture-name').value = '';
+      document.getElementById('seats-available').value = '6';
+      document.getElementById('standby-price').value = '349';
+      document.getElementById('package-notes').value = '';
+      document.querySelectorAll('.pkg-check').forEach(cb => cb.checked = false);
+
+      if (editItem) {
+        document.getElementById('editing-inventory-id').value = editItem.id;
+        document.getElementById('release-modal-title').textContent = 'Edit Inventory';
+        document.getElementById('release-modal-subtitle').textContent = 'Changes appear instantly on the Fan View';
+        document.getElementById('release-submit-btn').textContent = 'Save Changes →';
+        document.getElementById('fixture-name').value = editItem.fixture_name || '';
+        document.getElementById('seats-available').value = editItem.seats_available ?? 6;
+        document.getElementById('standby-price').value = editItem.standby_price ?? 349;
+
+        // Parse package_details back into checkboxes + notes
+        const details = (editItem.package_details || '').split(' • ');
+        const known = ['Padded seats','Food included','Drinks included','Match programme','Parking','Half-time access'];
+        const notes = [];
+        details.forEach(d => {
+          const trimmed = d.trim();
+          if (known.includes(trimmed)) {
+            const cb = document.querySelector(`.pkg-check[value="${trimmed}"]`);
+            if (cb) cb.checked = true;
+          } else if (trimmed) {
+            notes.push(trimmed);
+          }
+        });
+        document.getElementById('package-notes').value = notes.join(' • ');
+      } else if (selectedClub) {
+        document.getElementById('fixture-name').value = getDemoFixtureSuggestion();
+      }
+
       document.getElementById('release-modal').classList.remove('hidden');
       document.getElementById('release-modal').classList.add('flex');
-      // Pre-fill a realistic fixture for the selected club
-      const fixtureInput = document.getElementById('fixture-name');
-      if (fixtureInput && !fixtureInput.value && selectedClub) {
-        fixtureInput.value = getDemoFixtureSuggestion();
-      }
-      setTimeout(() => fixtureInput.focus(), 150);
+      setTimeout(() => document.getElementById('fixture-name').focus(), 150);
     }
 
     function closeReleaseModal() {
       document.getElementById('release-modal').classList.add('hidden');
       document.getElementById('release-modal').classList.remove('flex');
+      document.getElementById('editing-inventory-id').value = '';
+    }
+
+    function getSelectedPackageDetails() {
+      const checked = Array.from(document.querySelectorAll('.pkg-check:checked')).map(cb => cb.value);
+      const notes = document.getElementById('package-notes').value.trim();
+      if (notes) checked.push(notes);
+      return checked.length ? checked.join(' • ') : 'Hospitality package';
     }
 
     async function submitReleaseInventory() {
       const fixture = document.getElementById('fixture-name').value.trim();
       const seats = parseInt(document.getElementById('seats-available').value);
       const price = parseFloat(document.getElementById('standby-price').value);
-      const pkg = document.getElementById('package-details').value.trim();
+      const pkg = getSelectedPackageDetails();
+      const editingId = document.getElementById('editing-inventory-id').value;
       const btn = document.getElementById('release-submit-btn');
-      
-      if (!fixture || !seats || !price || !pkg) {
-        showToast('Please complete all fields', 'error');
+
+      if (!fixture || !seats || !price) {
+        showToast('Please complete fixture, seats and price', 'error');
         return;
       }
-      
-      btn.innerHTML = '<div class="spinner"></div> Releasing…';
+
+      btn.innerHTML = '<div class="spinner"></div> Saving…';
       btn.disabled = true;
-      
+
       try {
-        const { error } = await sb.from('inventory').insert({
-          club_id: currentUser.id,
-          fixture_name: fixture,
-          seats_available: seats,
-          package_details: pkg,
-          standby_price: price
-        });
-        if (error) throw error;
-        
+        if (editingId) {
+          const { error } = await sb.from('inventory').update({
+            fixture_name: fixture,
+            seats_available: seats,
+            package_details: pkg,
+            standby_price: price
+          }).eq('id', editingId).eq('club_id', currentUser.id);
+          if (error) throw error;
+          showToast('Inventory updated', 'success');
+        } else {
+          const { error } = await sb.from('inventory').insert({
+            club_id: currentUser.id,
+            fixture_name: fixture,
+            seats_available: seats,
+            package_details: pkg,
+            standby_price: price
+          });
+          if (error) throw error;
+          showToast('Inventory released! Live on Fan View now.', 'success');
+        }
         closeReleaseModal();
-        showToast('Inventory released! Live on Fan View now.', 'success');
-        // Clear form
-        document.getElementById('fixture-name').value = '';
-        document.getElementById('package-details').value = '';
-        // Realtime + explicit reload
         await loadInventory();
-        setTimeout(() => { if (currentPane === 'club') showPane('fan'); }, 900);
       } catch (err) {
-        showToast(err.message || 'Failed to release', 'error');
+        showToast(err.message || 'Failed to save', 'error');
       } finally {
-        btn.innerHTML = 'Release to Fans →';
+        btn.innerHTML = editingId ? 'Save Changes →' : 'Release to Fans →';
         btn.disabled = false;
       }
+    }
+
+    async function removeInventoryItem(id) {
+      if (!confirm('Remove this listing? Fans will no longer see it.')) return;
+      const { error } = await sb.from('inventory').delete().eq('id', id);
+      if (error) {
+        showToast(error.message, 'error');
+        return;
+      }
+      showToast('Listing removed', 'success');
+      await loadInventory();
+    }
+
+    function editInventoryItem(id) {
+      const item = inventory.find(i => i.id === id);
+      if (item) openReleaseModal(item);
     }
 
     // ============================================================
@@ -1055,12 +1164,12 @@
               <div class="text-[11px] font-semibold text-amber-700 mb-1">${clubName}</div>
               <h3 class="font-bold text-xl sm:text-2xl leading-tight tracking-[-0.5px] pr-2">${item.fixture_name}</h3>
               
-              <div class="mt-3 mb-4">
-                <div class="flex items-start gap-x-2.5">
-                  <i class="fa-solid fa-utensils text-amber-600 mt-0.5 text-sm"></i>
-                  <div class="flex-1 text-xs sm:text-sm text-slate-600 leading-snug">${item.package_details}</div>
-                </div>
+              <div class="mt-3 mb-3 flex flex-wrap gap-1.5">
+                ${(item.package_details || '').split(' • ').filter(Boolean).map(d =>
+                  `<span class="inline-flex items-center px-2 py-0.5 rounded-lg bg-slate-100 text-[11px] text-slate-600 font-medium">${d.trim()}</span>`
+                ).join('')}
               </div>
+              ${item.profiles?.email ? `<div class="mb-3 text-[10px] text-slate-400 flex items-center gap-1"><i class="fa-regular fa-envelope"></i> <a href="mailto:${item.profiles.email}" class="hover:text-amber-700 transition-colors">${item.profiles.email}</a></div>` : ''}
               
               <div class="flex items-end justify-between pt-2 border-t border-slate-100">
                 <div class="flex items-center gap-x-1.5 text-emerald-700">
@@ -1133,14 +1242,9 @@
       document.getElementById('quantity-modal').classList.remove('flex');
     }
 
-    async function proceedToPayment() {
+    function proceedToPayment() {
       closeQuantityModal();
       const item = currentClaim.item;
-
-      if (!stripe) {
-        showToast('Stripe is not configured. Add your publishable key.', 'error');
-        return;
-      }
 
       document.getElementById('payment-summary').innerHTML = `
         <div class="flex justify-between text-sm">
@@ -1151,158 +1255,103 @@
           <div class="text-right font-semibold tabular-nums">£${currentClaim.total}</div>
         </div>
         <div class="border-t my-2.5"></div>
-        <div class="flex justify-between text-xs text-slate-500">
-          <div>Club receives (85%)</div>
-          <div class="tabular-nums">£${(currentClaim.total * 0.85).toFixed(2)}</div>
-        </div>
-        <div class="flex justify-between text-xs text-slate-500 mb-1">
-          <div>Platform fee (15%)</div>
-          <div class="tabular-nums">£${(currentClaim.total * 0.15).toFixed(2)}</div>
-        </div>
         <div class="flex justify-between font-bold text-base">
           <div>Total to pay</div>
           <div class="tabular-nums">£${currentClaim.total}</div>
         </div>
       `;
 
-      // Clear previous element
+      // Show simple demo card form (no real Stripe required)
       const elContainer = document.getElementById('payment-element');
-      elContainer.innerHTML = '<div class="text-center py-6 text-slate-500 text-sm">Loading secure payment form…</div>';
-      document.getElementById('payment-message').classList.add('hidden');
+      if (elContainer) {
+        elContainer.innerHTML = `
+          <div class="space-y-3">
+            <div>
+              <label class="text-[10px] font-semibold text-slate-500 block mb-1.5">CARD NUMBER</label>
+              <input id="demo-card" type="text" value="4242 4242 4242 4242" maxlength="19"
+                     class="form-input w-full border border-slate-300 rounded-2xl px-4 py-2.5 font-mono text-sm tracking-wider">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-[10px] font-semibold text-slate-500 block mb-1.5">EXPIRY</label>
+                <input type="text" value="12 / 28" class="form-input w-full border border-slate-300 rounded-2xl px-4 py-2.5 font-mono text-sm">
+              </div>
+              <div>
+                <label class="text-[10px] font-semibold text-slate-500 block mb-1.5">CVC</label>
+                <input type="text" value="123" class="form-input w-full border border-slate-300 rounded-2xl px-4 py-2.5 font-mono text-sm">
+              </div>
+            </div>
+            <p class="text-[10px] text-slate-400 text-center"><i class="fa-solid fa-info-circle"></i> Demo mode — no real charge will be made</p>
+          </div>
+        `;
+      }
 
+      document.getElementById('payment-message')?.classList.add('hidden');
       document.getElementById('payment-modal').classList.remove('hidden');
       document.getElementById('payment-modal').classList.add('flex');
-
-      try {
-        // Create PaymentIntent on the server (with Connect split)
-        const res = await fetch(`${FUNCTIONS_URL}/create-payment-intent`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({
-            inventory_id: currentClaim.itemId,
-            qty: currentClaim.qty,
-          }),
-        });
-
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Failed to create payment');
-
-        currentClaim.clientSecret = data.clientSecret;
-        currentClaim.paymentIntentId = data.paymentIntentId;
-
-        // Mount Payment Element
-        stripeElements = stripe.elements({
-          clientSecret: data.clientSecret,
-          appearance: {
-            theme: 'stripe',
-            variables: {
-              colorPrimary: '#635BFF',
-              borderRadius: '12px',
-            },
-          },
-        });
-
-        paymentElement = stripeElements.create('payment');
-        elContainer.innerHTML = '';
-        paymentElement.mount('#payment-element');
-
-      } catch (err) {
-        console.error(err);
-        elContainer.innerHTML = `<div class="text-red-600 text-sm text-center py-4">${err.message}</div>`;
-        showToast(err.message, 'error');
-      }
     }
 
     function closePaymentModal() {
       document.getElementById('payment-modal').classList.add('hidden');
       document.getElementById('payment-modal').classList.remove('flex');
-      if (paymentElement) {
-        try { paymentElement.unmount(); } catch(e) {}
-        paymentElement = null;
-      }
     }
 
     async function processPayment() {
-      if (!stripe || !stripeElements || !currentClaim?.clientSecret) {
-        showToast('Payment form not ready', 'error');
-        return;
-      }
-
       const btn = document.getElementById('pay-btn');
       const btnText = document.getElementById('pay-button-text');
-      const msgEl = document.getElementById('payment-message');
+      if (!btn || !currentClaim) return;
 
       btn.disabled = true;
       btnText.innerHTML = '<div class="spinner"></div> PROCESSING…';
-      msgEl.classList.add('hidden');
-
-      const { error, paymentIntent } = await stripe.confirmPayment({
-        elements: stripeElements,
-        redirect: 'if_required',
-        confirmParams: {
-          return_url: window.location.href,
-        },
-      });
-
-      if (error) {
-        msgEl.textContent = error.message;
-        msgEl.classList.remove('hidden');
-        btn.disabled = false;
-        btnText.innerHTML = 'PAY SECURELY';
-        return;
-      }
-
-      // Payment succeeded on the client. Now wait for the webhook to create the voucher.
-      btnText.innerHTML = '<div class="spinner"></div> CONFIRMING VOUCHER…';
 
       try {
-        const claim = await waitForClaim(currentClaim.paymentIntentId, 25); // ~25 seconds max
-        closePaymentModal();
-        showVoucherModal(claim);
-        // Also keep a local copy for "My Vouchers"
-        claims.unshift(claim);
+        // Simulate network delay
+        await new Promise(r => setTimeout(r, 1200));
+
+        // Decrement seats via RPC (or fallback update)
+        const { data: rpcResult, error: rpcError } = await sb.rpc('claim_seats', {
+          p_inventory_id: currentClaim.itemId,
+          p_qty: currentClaim.qty
+        });
+
+        if (rpcError) {
+          // Fallback if RPC missing
+          const remaining = Math.max(0, currentClaim.item.seats_available - currentClaim.qty);
+          const { error: upErr } = await sb
+            .from('inventory')
+            .update({ seats_available: remaining })
+            .eq('id', currentClaim.itemId);
+          if (upErr) throw upErr;
+        } else if (rpcResult && !rpcResult.success) {
+          throw new Error(rpcResult.error || 'Not enough seats');
+        }
+
+        // Create local voucher
+        const bookingRef = 'LPH-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        const newClaim = {
+          id: Date.now(),
+          item_id: currentClaim.itemId,
+          fixture_name: currentClaim.item.fixture_name,
+          club_name: currentClaim.item.profiles?.club_name || 'Club',
+          qty: currentClaim.qty,
+          unit_price: Number(currentClaim.item.standby_price),
+          total_paid: currentClaim.total,
+          package_details: currentClaim.item.package_details,
+          booking_ref: bookingRef,
+          claimed_at: new Date().toISOString()
+        };
+
+        claims.unshift(newClaim);
         saveClaimsToLocal();
+        closePaymentModal();
+        showVoucherModal(newClaim);
         await loadInventory();
         currentClaim = null;
       } catch (err) {
-        msgEl.textContent = err.message || 'Payment succeeded but voucher is still processing. Check My Vouchers shortly.';
-        msgEl.classList.remove('hidden');
-        btn.disabled = false;
+        showToast(err.message || 'Payment failed', 'error');
         btnText.innerHTML = 'PAY SECURELY';
-        // Still refresh inventory in case seats were decremented
-        await loadInventory();
+        btn.disabled = false;
       }
-    }
-
-    // Poll Supabase for the claim created by the webhook
-    async function waitForClaim(paymentIntentId, maxAttempts = 20) {
-      for (let i = 0; i < maxAttempts; i++) {
-        const { data, error } = await sb
-          .from('claims')
-          .select('*')
-          .eq('stripe_payment_intent_id', paymentIntentId)
-          .maybeSingle();
-
-        if (data) {
-          // Normalize to the shape expected by showVoucherModal
-          return {
-            id: data.id,
-            fixture_name: data.fixture_name,
-            club_name: data.club_name,
-            qty: data.qty,
-            unit_price: data.unit_price,
-            total_paid: data.total_paid,
-            package_details: data.package_details,
-            booking_ref: data.booking_ref,
-            claimed_at: data.claimed_at,
-          };
-        }
-        await new Promise(r => setTimeout(r, 1000));
-      }
-      throw new Error('Voucher is taking longer than expected. It will appear under My Vouchers once confirmed.');
     }
 
     // ============================================================
@@ -1507,110 +1556,9 @@
     }
 
     function renderConnectBanner() {
-      if (!currentProfile) return '';
-      if (currentProfile.stripe_onboarding_complete) {
-        return `<div class="mb-6 bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3 flex items-center gap-3 text-sm text-emerald-800">
-          <i class="fa-solid fa-circle-check text-emerald-600"></i>
-          <span>Stripe Connect is active. You will receive <strong>85%</strong> of every sale automatically.</span>
-        </div>`;
-      }
-      return `<div class="mb-6 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div class="text-sm text-amber-900">
-          <div class="font-semibold mb-0.5">Connect Stripe to receive payouts</div>
-          <div class="text-amber-800/80">Fans can only purchase once you complete Stripe Express onboarding. You keep 85% of every sale.</div>
-        </div>
-        <button onclick="startStripeConnect()" class="shrink-0 px-5 py-2.5 bg-slate-900 hover:bg-black text-white text-sm font-semibold rounded-xl">
-          Connect with Stripe →
-        </button>
-      </div>`;
+      // Stripe Connect is optional for demos – hide the banner for now
+      return '';
     }
-
-
-
-    // ============================================================
-    // WELCOME / CLUB PERSONALIZATION + CRESTS
-    // ============================================================
-
-    // Curated crest URLs (Wikimedia / reliable sources). Fallback generates a clean monogram.
-    const CLUB_CRESTS = {
-      // Championship
-      "Birmingham City": "https://upload.wikimedia.org/wikipedia/en/6/68/Birmingham_City_FC_logo.svg",
-      "Blackburn Rovers": "https://upload.wikimedia.org/wikipedia/en/0/0f/Blackburn_Rovers.svg",
-      "Bristol City": "https://upload.wikimedia.org/wikipedia/en/0/00/Bristol_City_FC.svg",
-      "Charlton Athletic": "https://upload.wikimedia.org/wikipedia/en/5/5a/Charlton_Athletic.svg",
-      "Coventry City": "https://upload.wikimedia.org/wikipedia/en/9/94/Coventry_City_FC_logo.svg",
-      "Derby County": "https://upload.wikimedia.org/wikipedia/en/4/4a/Derby_County_crest.svg",
-      "Hull City": "https://upload.wikimedia.org/wikipedia/en/5/54/Hull_City_A.F.C._logo.svg",
-      "Ipswich Town": "https://upload.wikimedia.org/wikipedia/en/4/43/Ipswich_Town.svg",
-      "Leicester City": "https://upload.wikimedia.org/wikipedia/en/2/2d/Leicester_City_crest.svg",
-      "Middlesbrough": "https://upload.wikimedia.org/wikipedia/en/2/2c/Middlesbrough_FC_crest.svg",
-      "Millwall": "https://upload.wikimedia.org/wikipedia/en/7/71/Millwall_FC_logo.svg",
-      "Norwich City": "https://upload.wikimedia.org/wikipedia/en/8/8c/Norwich_City.svg",
-      "Oxford United": "https://upload.wikimedia.org/wikipedia/en/3/3e/Oxford_United_FC_logo.svg",
-      "Portsmouth": "https://upload.wikimedia.org/wikipedia/en/3/3c/Portsmouth_FC_logo.svg",
-      "Preston North End": "https://upload.wikimedia.org/wikipedia/en/8/82/Preston_North_End_FC.svg",
-      "Queens Park Rangers": "https://upload.wikimedia.org/wikipedia/en/3/31/Queens_Park_Rangers_crest.svg",
-      "Sheffield United": "https://upload.wikimedia.org/wikipedia/en/9/9c/Sheffield_United_FC_logo.svg",
-      "Sheffield Wednesday": "https://upload.wikimedia.org/wikipedia/en/8/88/Sheffield_Wednesday_badge.svg",
-      "Southampton": "https://upload.wikimedia.org/wikipedia/en/c/c9/FC_Southampton.svg",
-      "Stoke City": "https://upload.wikimedia.org/wikipedia/en/2/29/Stoke_City_FC.svg",
-      "Swansea City": "https://upload.wikimedia.org/wikipedia/en/f/f9/Swansea_City_AFC_logo.svg",
-      "Watford": "https://upload.wikimedia.org/wikipedia/en/e/e2/Watford.svg",
-      "West Bromwich Albion": "https://upload.wikimedia.org/wikipedia/en/8/8b/West_Bromwich_Albion.svg",
-      "Wrexham": "https://upload.wikimedia.org/wikipedia/en/3/3d/Wrexham_A.F.C._logo.svg",
-
-      // League One (selection of reliable ones)
-      "AFC Wimbledon": "https://upload.wikimedia.org/wikipedia/en/5/5c/AFC_Wimbledon.svg",
-      "Barnsley": "https://upload.wikimedia.org/wikipedia/en/c/c9/Barnsley_FC.svg",
-      "Blackpool": "https://upload.wikimedia.org/wikipedia/en/d/df/Blackpool_FC_logo.svg",
-      "Bolton Wanderers": "https://upload.wikimedia.org/wikipedia/en/8/82/Bolton_Wanderers_FC_logo.svg",
-      "Bradford City": "https://upload.wikimedia.org/wikipedia/en/3/3c/Bradford_City_AFC.png",
-      "Burton Albion": "https://upload.wikimedia.org/wikipedia/en/5/53/Burton_Albion_FC_logo.svg",
-      "Cardiff City": "https://upload.wikimedia.org/wikipedia/en/3/3c/Cardiff_City_crest.svg",
-      "Doncaster Rovers": "https://upload.wikimedia.org/wikipedia/en/4/4c/Doncaster_Rovers_FC.svg",
-      "Exeter City": "https://upload.wikimedia.org/wikipedia/en/7/71/Exeter_City_FC.svg",
-      "Huddersfield Town": "https://upload.wikimedia.org/wikipedia/en/7/7d/Huddersfield_Town_A.F.C._logo.svg",
-      "Leyton Orient": "https://upload.wikimedia.org/wikipedia/en/2/21/Leyton_Orient_FC_logo.svg",
-      "Lincoln City": "https://upload.wikimedia.org/wikipedia/en/5/58/Lincoln_City_FC_logo.svg",
-      "Luton Town": "https://upload.wikimedia.org/wikipedia/en/9/9d/Luton_Town_logo.svg",
-      "Mansfield Town": "https://upload.wikimedia.org/wikipedia/en/5/5c/Mansfield_Town_FC.svg",
-      "Northampton Town": "https://upload.wikimedia.org/wikipedia/en/8/8c/Northampton_Town_FC_logo.svg",
-      "Peterborough United": "https://upload.wikimedia.org/wikipedia/en/d/d4/Peterborough_United.svg",
-      "Plymouth Argyle": "https://upload.wikimedia.org/wikipedia/en/a/a8/Plymouth_Argyle_F.C._logo.svg",
-      "Port Vale": "https://upload.wikimedia.org/wikipedia/en/5/5f/Port_Vale_logo.svg",
-      "Reading": "https://upload.wikimedia.org/wikipedia/en/1/11/Reading_FC.svg",
-      "Rotherham United": "https://upload.wikimedia.org/wikipedia/en/c/c0/Rotherham_United_FC.svg",
-      "Stevenage": "https://upload.wikimedia.org/wikipedia/en/4/45/Stevenage_Football_Club.png",
-      "Stockport County": "https://upload.wikimedia.org/wikipedia/en/2/29/Stockport_County_FC_logo.svg",
-      "Wigan Athletic": "https://upload.wikimedia.org/wikipedia/en/4/43/Wigan_Athletic.svg",
-      "Wycombe Wanderers": "https://upload.wikimedia.org/wikipedia/en/f/f3/Wycombe_Wanderers_FC_logo.svg",
-
-      // League Two
-      "Accrington Stanley": "https://upload.wikimedia.org/wikipedia/en/6/63/Accrington_Stanley_F.C._logo.svg",
-      "Barnet": "https://upload.wikimedia.org/wikipedia/en/a/a2/Barnet_FC.svg",
-      "Barrow": "https://upload.wikimedia.org/wikipedia/en/5/5b/Barrow_AFC_logo.svg",
-      "Bristol Rovers": "https://upload.wikimedia.org/wikipedia/en/4/47/Bristol_Rovers_F.C._logo.svg",
-      "Bromley": "https://upload.wikimedia.org/wikipedia/en/7/7c/Bromley_F.C._logo.svg",
-      "Cambridge United": "https://upload.wikimedia.org/wikipedia/en/8/86/Cambridge_United_FC.svg",
-      "Cheltenham Town": "https://upload.wikimedia.org/wikipedia/en/c/c3/Cheltenham_Town_F.C._logo.svg",
-      "Chesterfield": "https://upload.wikimedia.org/wikipedia/en/9/9b/Chesterfield_FC_crest.svg",
-      "Colchester United": "https://upload.wikimedia.org/wikipedia/en/4/48/Colchester_United_FC_logo.svg",
-      "Crawley Town": "https://upload.wikimedia.org/wikipedia/en/8/8b/Crawley_Town_FC_logo.svg",
-      "Crewe Alexandra": "https://upload.wikimedia.org/wikipedia/en/9/9d/Crewe_Alexandra.svg",
-      "Fleetwood Town": "https://upload.wikimedia.org/wikipedia/en/2/2d/Fleetwood_Town_FC.svg",
-      "Gillingham": "https://upload.wikimedia.org/wikipedia/en/2/2e/Gillingham_FC_logo.svg",
-      "Grimsby Town": "https://upload.wikimedia.org/wikipedia/en/7/79/Grimsby_Town_FC.svg",
-      "Harrogate Town": "https://upload.wikimedia.org/wikipedia/en/2/2c/Harrogate_Town_A.F.C._logo.svg",
-      "MK Dons": "https://upload.wikimedia.org/wikipedia/en/d/d3/MK_Dons.svg",
-      "Newport County": "https://upload.wikimedia.org/wikipedia/en/4/45/Newport_County_AFC.png",
-      "Notts County": "https://upload.wikimedia.org/wikipedia/en/4/4c/Notts_County_logo.svg",
-      "Oldham Athletic": "https://upload.wikimedia.org/wikipedia/en/4/4c/Oldham_Athletic.svg",
-      "Salford City": "https://upload.wikimedia.org/wikipedia/en/7/75/Salford_City_FC.svg",
-      "Shrewsbury Town": "https://upload.wikimedia.org/wikipedia/en/0/0c/Shrewsbury_Town_FC.svg",
-      "Swindon Town": "https://upload.wikimedia.org/wikipedia/en/a/a3/Swindon_Town_FC.svg",
-      "Tranmere Rovers": "https://upload.wikimedia.org/wikipedia/en/9/9f/Tranmere_Rovers_FC_logo.svg",
-      "Walsall": "https://upload.wikimedia.org/wikipedia/en/e/ef/Walsall_FC.svg"
-    };
 
     function getClubCrestUrl(clubName) {
       if (CLUB_CRESTS[clubName]) return CLUB_CRESTS[clubName];
