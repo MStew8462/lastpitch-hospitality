@@ -7,6 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://js.stripe.com/v3/"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap');
     
@@ -84,6 +85,113 @@
   </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
+  <!-- WELCOME / DEMO SETUP MODAL -->
+  <div id="welcome-modal" class="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[300] flex items-center justify-center p-4 sm:p-6">
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden modal">
+      <div class="bg-slate-900 px-6 sm:px-8 pt-8 pb-6 text-center">
+        <div class="mx-auto w-14 h-14 bg-amber-400/20 rounded-2xl flex items-center justify-center mb-4">
+          <i class="fa-solid fa-ticket text-3xl text-amber-400"></i>
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-bold text-white tracking-tight">Welcome to LastPitch</h2>
+        <p class="text-slate-400 text-sm mt-2">Premium last-minute hospitality for the EFL</p>
+      </div>
+      <div class="px-6 sm:px-8 py-6 sm:py-8">
+        <label class="block text-[11px] font-semibold tracking-widest text-slate-500 mb-2 uppercase">Select your club to personalize the demo</label>
+        <div class="relative">
+          <select id="club-select" class="w-full appearance-none bg-slate-50 border border-slate-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-100 rounded-2xl px-4 py-3.5 text-sm font-medium text-slate-900 pr-10">
+            <option value="" disabled selected>Choose a club…</option>
+            <optgroup label="Championship">
+              <option value="Birmingham City">Birmingham City</option>
+              <option value="Blackburn Rovers">Blackburn Rovers</option>
+              <option value="Bristol City">Bristol City</option>
+              <option value="Charlton Athletic">Charlton Athletic</option>
+              <option value="Coventry City">Coventry City</option>
+              <option value="Derby County">Derby County</option>
+              <option value="Hull City">Hull City</option>
+              <option value="Ipswich Town">Ipswich Town</option>
+              <option value="Leicester City">Leicester City</option>
+              <option value="Middlesbrough">Middlesbrough</option>
+              <option value="Millwall">Millwall</option>
+              <option value="Norwich City">Norwich City</option>
+              <option value="Oxford United">Oxford United</option>
+              <option value="Portsmouth">Portsmouth</option>
+              <option value="Preston North End">Preston North End</option>
+              <option value="Queens Park Rangers">Queens Park Rangers</option>
+              <option value="Sheffield United">Sheffield United</option>
+              <option value="Sheffield Wednesday">Sheffield Wednesday</option>
+              <option value="Southampton">Southampton</option>
+              <option value="Stoke City">Stoke City</option>
+              <option value="Swansea City">Swansea City</option>
+              <option value="Watford">Watford</option>
+              <option value="West Bromwich Albion">West Bromwich Albion</option>
+              <option value="Wrexham">Wrexham</option>
+            </optgroup>
+            <optgroup label="League One">
+              <option value="AFC Wimbledon">AFC Wimbledon</option>
+              <option value="Barnsley">Barnsley</option>
+              <option value="Blackpool">Blackpool</option>
+              <option value="Bolton Wanderers">Bolton Wanderers</option>
+              <option value="Bradford City">Bradford City</option>
+              <option value="Burton Albion">Burton Albion</option>
+              <option value="Cardiff City">Cardiff City</option>
+              <option value="Doncaster Rovers">Doncaster Rovers</option>
+              <option value="Exeter City">Exeter City</option>
+              <option value="Huddersfield Town">Huddersfield Town</option>
+              <option value="Leyton Orient">Leyton Orient</option>
+              <option value="Lincoln City">Lincoln City</option>
+              <option value="Luton Town">Luton Town</option>
+              <option value="Mansfield Town">Mansfield Town</option>
+              <option value="Northampton Town">Northampton Town</option>
+              <option value="Peterborough United">Peterborough United</option>
+              <option value="Plymouth Argyle">Plymouth Argyle</option>
+              <option value="Port Vale">Port Vale</option>
+              <option value="Reading">Reading</option>
+              <option value="Rotherham United">Rotherham United</option>
+              <option value="Stevenage">Stevenage</option>
+              <option value="Stockport County">Stockport County</option>
+              <option value="Wigan Athletic">Wigan Athletic</option>
+              <option value="Wycombe Wanderers">Wycombe Wanderers</option>
+            </optgroup>
+            <optgroup label="League Two">
+              <option value="Accrington Stanley">Accrington Stanley</option>
+              <option value="Barnet">Barnet</option>
+              <option value="Barrow">Barrow</option>
+              <option value="Bristol Rovers">Bristol Rovers</option>
+              <option value="Bromley">Bromley</option>
+              <option value="Cambridge United">Cambridge United</option>
+              <option value="Cheltenham Town">Cheltenham Town</option>
+              <option value="Chesterfield">Chesterfield</option>
+              <option value="Colchester United">Colchester United</option>
+              <option value="Crawley Town">Crawley Town</option>
+              <option value="Crewe Alexandra">Crewe Alexandra</option>
+              <option value="Fleetwood Town">Fleetwood Town</option>
+              <option value="Gillingham">Gillingham</option>
+              <option value="Grimsby Town">Grimsby Town</option>
+              <option value="Harrogate Town">Harrogate Town</option>
+              <option value="MK Dons">MK Dons</option>
+              <option value="Newport County">Newport County</option>
+              <option value="Notts County">Notts County</option>
+              <option value="Oldham Athletic">Oldham Athletic</option>
+              <option value="Salford City">Salford City</option>
+              <option value="Shrewsbury Town">Shrewsbury Town</option>
+              <option value="Swindon Town">Swindon Town</option>
+              <option value="Tranmere Rovers">Tranmere Rovers</option>
+              <option value="Walsall">Walsall</option>
+            </optgroup>
+          </select>
+          <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-sm"></i>
+        </div>
+        <p class="text-xs text-slate-500 mt-3 leading-relaxed">This personalizes the demo titles and sample fixtures. Your choice is saved on this device.</p>
+        <button id="start-demo-btn" onclick="startInteractiveDemo()" disabled
+                class="mt-6 w-full py-3.5 bg-slate-900 hover:bg-black disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold rounded-2xl transition-all flex items-center justify-center gap-x-2">
+          <span>Start Interactive Demo</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
   <!-- Top Navigation -->
   <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
@@ -262,7 +370,7 @@
     </div>
   </div>
 
-  <!-- PAYMENT MODAL (Stripe-style) -->
+  <!-- PAYMENT MODAL (Real Stripe Connect) -->
   <div id="payment-modal" onclick="if(event.target.id==='payment-modal') closePaymentModal()" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-[120] flex items-center justify-center p-4 sm:p-6">
     <div onclick="event.stopImmediatePropagation()" class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden modal">
       <div class="bg-slate-900 px-5 sm:px-6 py-4 sm:py-5 text-white flex items-center justify-between">
@@ -270,7 +378,7 @@
           <i class="fa-brands fa-stripe text-2xl sm:text-3xl"></i>
           <div>
             <div class="font-semibold text-sm sm:text-base">Secure Checkout</div>
-            <div class="text-[9px] sm:text-[10px] text-slate-400 -mt-0.5">Powered by Stripe • Demo Mode</div>
+            <div class="text-[9px] sm:text-[10px] text-slate-400 -mt-0.5">Stripe Connect • 85% to club • 15% platform</div>
           </div>
         </div>
         <button onclick="closePaymentModal()" class="text-white/70 hover:text-white text-2xl leading-none">&times;</button>
@@ -280,49 +388,28 @@
           <div class="text-[10px] uppercase tracking-[1px] text-slate-500 mb-2">ORDER SUMMARY</div>
           <div id="payment-summary" class="bg-slate-50 rounded-2xl p-4 text-sm space-y-1"></div>
         </div>
-        <div class="space-y-3 sm:space-y-4">
-          <div>
-            <label class="text-[10px] sm:text-xs font-semibold text-slate-500 block mb-1.5">CARD NUMBER</label>
-            <div class="relative">
-              <input id="card-number" type="text" placeholder="4242 4242 4242 4242" maxlength="19" oninput="formatCardNumber(this)"
-                     class="form-input w-full border border-slate-300 rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 font-mono text-sm tracking-wider">
-              <div class="absolute right-4 top-3 text-slate-400"><i class="fa-brands fa-cc-visa text-xl"></i></div>
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-3 sm:gap-4">
-            <div>
-              <label class="text-[10px] sm:text-xs font-semibold text-slate-500 block mb-1.5">EXPIRY</label>
-              <input id="card-expiry" type="text" placeholder="02 / 28" maxlength="7" oninput="formatExpiry(this)"
-                     class="form-input w-full border border-slate-300 rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 font-mono text-sm">
-            </div>
-            <div>
-              <label class="text-[10px] sm:text-xs font-semibold text-slate-500 block mb-1.5">CVC</label>
-              <input id="card-cvc" type="text" placeholder="424" maxlength="4"
-                     class="form-input w-full border border-slate-300 rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 font-mono text-sm">
-            </div>
-          </div>
-          <div>
-            <label class="text-[10px] sm:text-xs font-semibold text-slate-500 block mb-1.5">NAME ON CARD</label>
-            <input id="card-name" type="text" placeholder="Alex Ferguson" value="Matt Thompson"
-                   class="form-input w-full border border-slate-300 rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 text-sm">
-          </div>
+
+        <!-- Stripe Payment Element mounts here -->
+        <div id="payment-element" class="mb-4">
+          <!-- Stripe injects the form -->
         </div>
-        <div class="mt-4 text-[9px] sm:text-[10px] text-center text-slate-400 flex items-center justify-center gap-x-1">
-          <i class="fa-solid fa-lock"></i> <span>Your payment information is encrypted and secure</span>
+        <div id="payment-message" class="hidden text-sm text-red-600 bg-red-50 px-3 py-2 rounded-xl mb-3"></div>
+
+        <div class="text-[9px] sm:text-[10px] text-center text-slate-400 flex items-center justify-center gap-x-1 mb-2">
+          <i class="fa-solid fa-lock"></i> <span>Payment processed securely by Stripe. Voucher issued only after success.</span>
         </div>
       </div>
       <div class="px-5 sm:px-6 pb-5 sm:pb-6">
         <button id="pay-btn" onclick="processPayment()"
-                class="w-full py-3.5 bg-[#635BFF] hover:bg-[#5855E8] active:bg-[#4B48D9] transition-colors text-white font-semibold rounded-2xl flex items-center justify-center gap-x-2 text-sm">
+                class="w-full py-3.5 bg-[#635BFF] hover:bg-[#5855E8] active:bg-[#4B48D9] transition-colors text-white font-semibold rounded-2xl flex items-center justify-center gap-x-2 text-sm disabled:opacity-60">
           <span id="pay-button-text">PAY SECURELY</span>
           <i class="fa-solid fa-lock fa-sm"></i>
         </button>
-        <p class="text-center text-[9px] sm:text-[10px] text-slate-400 mt-2.5">Demo only. No real charges. Inventory is updated in Supabase.</p>
       </div>
     </div>
   </div>
 
-  <!-- VOUCHER / SUCCESS MODAL -->
+<!-- VOUCHER / SUCCESS MODAL -->
   <div id="voucher-modal" onclick="if(event.target.id==='voucher-modal') closeVoucherModal()" class="hidden fixed inset-0 bg-black/80 backdrop-blur-xl z-[130] flex items-center justify-center p-4 sm:p-6">
     <div onclick="event.stopImmediatePropagation()" class="w-full max-w-md modal">
       <div class="text-center mb-3">
@@ -348,17 +435,26 @@
 
   <script>
     // ============================================================
-    // SUPABASE CONFIG – REPLACE THESE TWO VALUES WITH YOUR PROJECT
-    // See SETUP.md for full instructions
+    // CONFIG – REPLACE THESE VALUES
     // ============================================================
-    const SUPABASE_URL = 'https://xcgymxbvmyoyymdaolzh.supabase.co'
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjZ3lteGJ2bXlveXltZGFvbHpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyMjc2MjQsImV4cCI6MjA5OTgwMzYyNH0.homP4_HKMynv6TA1-utVzTh3xFHD27lKxEOI-taveVg'
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL'                 // e.g. https://xxxx.sb.co
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'
+    const STRIPE_PUBLISHABLE_KEY = 'YOUR_STRIPE_PUBLISHABLE_KEY'  // pk_test_... or pk_live_...
+    // Edge Functions base (same project)
+    const FUNCTIONS_URL = SUPABASE_URL.replace(/\/$/, '') + '/functions/v1'
     // ============================================================
 
-    // Init Supabase - use 'sb' to avoid conflict with the CDN global 'supabase'
+    // Init clients
     const sb = (SUPABASE_URL !== 'YOUR_SUPABASE_URL' && SUPABASE_ANON_KEY !== 'YOUR_SUPABASE_ANON_KEY')
       ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
       : null;
+
+    let stripe = null;
+    let stripeElements = null;
+    let paymentElement = null;
+    if (typeof Stripe !== 'undefined' && STRIPE_PUBLISHABLE_KEY && STRIPE_PUBLISHABLE_KEY !== 'YOUR_STRIPE_PUBLISHABLE_KEY') {
+      stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+    }
 
     // Global state
     let currentUser = null;
@@ -369,12 +465,14 @@
     let currentPane = 'fan';
     let realtimeChannel = null;
     let isConfigured = !!sb;
+    let selectedClub = localStorage.getItem('lastpitch_selected_club') || null;
 
     // ============================================================
     // INITIALIZATION
     // ============================================================
     async function initializeApp() {
       loadClaimsFromLocal();
+      initWelcomeModal();   // Show club picker on first visit
       
       if (!isConfigured) {
         showConfigRequired();
@@ -433,7 +531,7 @@
           <h2 class="text-xl font-bold text-amber-900 mb-2">Supabase Setup Required</h2>
           <p class="text-sm text-amber-800 mb-4">This app needs a free Supabase project to store inventory and handle club authentication securely.</p>
           <div class="text-left bg-white rounded-2xl p-4 text-xs sm:text-sm text-slate-700 space-y-2 font-mono">
-            <p>1. Create project at <a href="https://supabase.com" target="_blank" class="text-amber-700 underline">supabase.com</a></p>
+            <p>1. Create project at <a href="https://supabase.com" target="_blank" class="text-amber-700 underline">sb.com</a></p>
             <p>2. Run <code class="bg-slate-100 px-1 rounded">supabase-schema.sql</code> in SQL Editor</p>
             <p>3. Copy Project URL + anon key from Settings → API</p>
             <p>4. Paste them at the top of this <code class="bg-slate-100 px-1 rounded">index.html</code></p>
@@ -449,7 +547,7 @@
     // ============================================================
     async function loadProfile() {
       if (!currentUser) return;
-      const { data, error } = await sb
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', currentUser.id)
@@ -498,7 +596,7 @@
     async function loadInventory() {
       if (!sb) return;
       try {
-        const { data, error } = await sb
+        const { data, error } = await supabase
           .from('inventory')
           .select(`
             id,
@@ -529,8 +627,8 @@
     }
 
     function setupRealtime() {
-      if (!sb || realtimeChannel) return;
-      realtimeChannel = sb
+      if (!supabase || realtimeChannel) return;
+      realtimeChannel = supabase
         .channel('inventory-live')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory' }, (payload) => {
           console.log('[Realtime]', payload.eventType, payload.new || payload.old);
@@ -666,6 +764,8 @@
             <i class="fa-solid fa-sign-out-alt"></i> <span>Logout</span>
           </button>
         </div>
+
+        ${renderConnectBanner()}
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div class="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-4 sm:p-5">
@@ -849,7 +949,12 @@
       if (!currentUser) return;
       document.getElementById('release-modal').classList.remove('hidden');
       document.getElementById('release-modal').classList.add('flex');
-      setTimeout(() => document.getElementById('fixture-name').focus(), 150);
+      // Pre-fill a realistic fixture for the selected club
+      const fixtureInput = document.getElementById('fixture-name');
+      if (fixtureInput && !fixtureInput.value && selectedClub) {
+        fixtureInput.value = getDemoFixtureSuggestion();
+      }
+      setTimeout(() => fixtureInput.focus(), 150);
     }
 
     function closeReleaseModal() {
@@ -1020,10 +1125,15 @@
       document.getElementById('quantity-modal').classList.remove('flex');
     }
 
-    function proceedToPayment() {
+    async function proceedToPayment() {
       closeQuantityModal();
       const item = currentClaim.item;
-      
+
+      if (!stripe) {
+        showToast('Stripe is not configured. Add your publishable key.', 'error');
+        return;
+      }
+
       document.getElementById('payment-summary').innerHTML = `
         <div class="flex justify-between text-sm">
           <div>
@@ -1033,108 +1143,158 @@
           <div class="text-right font-semibold tabular-nums">£${currentClaim.total}</div>
         </div>
         <div class="border-t my-2.5"></div>
+        <div class="flex justify-between text-xs text-slate-500">
+          <div>Club receives (85%)</div>
+          <div class="tabular-nums">£${(currentClaim.total * 0.85).toFixed(2)}</div>
+        </div>
+        <div class="flex justify-between text-xs text-slate-500 mb-1">
+          <div>Platform fee (15%)</div>
+          <div class="tabular-nums">£${(currentClaim.total * 0.15).toFixed(2)}</div>
+        </div>
         <div class="flex justify-between font-bold text-base">
           <div>Total to pay</div>
           <div class="tabular-nums">£${currentClaim.total}</div>
         </div>
       `;
-      
+
+      // Clear previous element
+      const elContainer = document.getElementById('payment-element');
+      elContainer.innerHTML = '<div class="text-center py-6 text-slate-500 text-sm">Loading secure payment form…</div>';
+      document.getElementById('payment-message').classList.add('hidden');
+
       document.getElementById('payment-modal').classList.remove('hidden');
       document.getElementById('payment-modal').classList.add('flex');
-      
-      // Demo card prefill
-      setTimeout(() => {
-        if (!document.getElementById('card-number').value) document.getElementById('card-number').value = '4242 4242 4242 4242';
-        if (!document.getElementById('card-expiry').value) document.getElementById('card-expiry').value = '02 / 28';
-        if (!document.getElementById('card-cvc').value) document.getElementById('card-cvc').value = '424';
-      }, 200);
+
+      try {
+        // Create PaymentIntent on the server (with Connect split)
+        const res = await fetch(`${FUNCTIONS_URL}/create-payment-intent`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            inventory_id: currentClaim.itemId,
+            qty: currentClaim.qty,
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to create payment');
+
+        currentClaim.clientSecret = data.clientSecret;
+        currentClaim.paymentIntentId = data.paymentIntentId;
+
+        // Mount Payment Element
+        stripeElements = stripe.elements({
+          clientSecret: data.clientSecret,
+          appearance: {
+            theme: 'stripe',
+            variables: {
+              colorPrimary: '#635BFF',
+              borderRadius: '12px',
+            },
+          },
+        });
+
+        paymentElement = stripeElements.create('payment');
+        elContainer.innerHTML = '';
+        paymentElement.mount('#payment-element');
+
+      } catch (err) {
+        console.error(err);
+        elContainer.innerHTML = `<div class="text-red-600 text-sm text-center py-4">${err.message}</div>`;
+        showToast(err.message, 'error');
+      }
     }
 
     function closePaymentModal() {
       document.getElementById('payment-modal').classList.add('hidden');
       document.getElementById('payment-modal').classList.remove('flex');
-    }
-
-    function formatCardNumber(input) {
-      let val = input.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-      let formatted = '';
-      for (let i = 0; i < val.length; i++) {
-        if (i > 0 && i % 4 === 0) formatted += ' ';
-        formatted += val[i];
+      if (paymentElement) {
+        try { paymentElement.unmount(); } catch(e) {}
+        paymentElement = null;
       }
-      input.value = formatted.substring(0, 19);
-    }
-
-    function formatExpiry(input) {
-      let val = input.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-      if (val.length >= 2) input.value = val.substring(0, 2) + ' / ' + val.substring(2, 4);
     }
 
     async function processPayment() {
+      if (!stripe || !stripeElements || !currentClaim?.clientSecret) {
+        showToast('Payment form not ready', 'error');
+        return;
+      }
+
       const btn = document.getElementById('pay-btn');
       const btnText = document.getElementById('pay-button-text');
-      const original = btnText.innerHTML;
-      
-      btnText.innerHTML = '<div class="spinner"></div> PROCESSING…';
+      const msgEl = document.getElementById('payment-message');
+
       btn.disabled = true;
-      
+      btnText.innerHTML = '<div class="spinner"></div> PROCESSING…';
+      msgEl.classList.add('hidden');
+
+      const { error, paymentIntent } = await stripe.confirmPayment({
+        elements: stripeElements,
+        redirect: 'if_required',
+        confirmParams: {
+          return_url: window.location.href,
+        },
+      });
+
+      if (error) {
+        msgEl.textContent = error.message;
+        msgEl.classList.remove('hidden');
+        btn.disabled = false;
+        btnText.innerHTML = 'PAY SECURELY';
+        return;
+      }
+
+      // Payment succeeded on the client. Now wait for the webhook to create the voucher.
+      btnText.innerHTML = '<div class="spinner"></div> CONFIRMING VOUCHER…';
+
       try {
-        // Simulate network + Stripe processing
-        await new Promise(r => setTimeout(r, 1400));
-        
-        // Decrement seats in Supabase (use RPC for safety if available, else simple update)
-        let remaining = currentClaim.item.seats_available - currentClaim.qty;
-        if (remaining < 0) remaining = 0;
-        
-        // Prefer the secure RPC
-        const { data: rpcResult, error: rpcError } = await sb.rpc('claim_seats', {
-          p_inventory_id: currentClaim.itemId,
-          p_qty: currentClaim.qty
-        });
-        
-        if (rpcError) {
-          // Fallback to direct update if RPC not present
-          console.warn('RPC not available, falling back to update', rpcError.message);
-          const { error: upErr } = await sb
-            .from('inventory')
-            .update({ seats_available: remaining })
-            .eq('id', currentClaim.itemId);
-          if (upErr) throw upErr;
-        } else if (rpcResult && !rpcResult.success) {
-          throw new Error(rpcResult.error || 'Not enough seats');
-        }
-        
-        // Create local claim/voucher
-        const bookingRef = 'LPH-' + Math.random().toString(36).substring(2, 10).toUpperCase();
-        const newClaim = {
-          id: Date.now(),
-          item_id: currentClaim.itemId,
-          fixture_name: currentClaim.item.fixture_name,
-          club_name: currentClaim.item.profiles?.club_name || 'Club',
-          qty: currentClaim.qty,
-          unit_price: Number(currentClaim.item.standby_price),
-          total_paid: currentClaim.total,
-          package_details: currentClaim.item.package_details,
-          booking_ref: bookingRef,
-          claimed_at: new Date().toISOString()
-        };
-        
-        claims.unshift(newClaim);
-        saveClaimsToLocal();
-        
+        const claim = await waitForClaim(currentClaim.paymentIntentId, 25); // ~25 seconds max
         closePaymentModal();
-        showVoucherModal(newClaim);
-        
-        // Refresh inventory (realtime will also fire)
+        showVoucherModal(claim);
+        // Also keep a local copy for "My Vouchers"
+        claims.unshift(claim);
+        saveClaimsToLocal();
         await loadInventory();
-        
         currentClaim = null;
       } catch (err) {
-        showToast(err.message || 'Payment / claim failed', 'error');
-      } finally {
-        btnText.innerHTML = original;
+        msgEl.textContent = err.message || 'Payment succeeded but voucher is still processing. Check My Vouchers shortly.';
+        msgEl.classList.remove('hidden');
         btn.disabled = false;
+        btnText.innerHTML = 'PAY SECURELY';
+        // Still refresh inventory in case seats were decremented
+        await loadInventory();
       }
+    }
+
+    // Poll Supabase for the claim created by the webhook
+    async function waitForClaim(paymentIntentId, maxAttempts = 20) {
+      for (let i = 0; i < maxAttempts; i++) {
+        const { data, error } = await sb
+          .from('claims')
+          .select('*')
+          .eq('stripe_payment_intent_id', paymentIntentId)
+          .maybeSingle();
+
+        if (data) {
+          // Normalize to the shape expected by showVoucherModal
+          return {
+            id: data.id,
+            fixture_name: data.fixture_name,
+            club_name: data.club_name,
+            qty: data.qty,
+            unit_price: data.unit_price,
+            total_paid: data.total_paid,
+            package_details: data.package_details,
+            booking_ref: data.booking_ref,
+            claimed_at: data.claimed_at,
+          };
+        }
+        await new Promise(r => setTimeout(r, 1000));
+      }
+      throw new Error('Voucher is taking longer than expected. It will appear under My Vouchers once confirmed.');
     }
 
     // ============================================================
@@ -1295,6 +1455,172 @@
         setTimeout(() => toast.remove(), 200);
       }, 3200);
     }
+
+
+    // ============================================================
+    // STRIPE CONNECT (Club onboarding)
+    // ============================================================
+    async function startStripeConnect() {
+      if (!currentUser) return;
+      try {
+        showToast('Creating Stripe account…', 'info');
+        // 1. Ensure Express account exists
+        let res = await fetch(`${FUNCTIONS_URL}/create-connect-account`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${(await sb.auth.getSession()).data.session?.access_token}`,
+          },
+        });
+        let data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to create account');
+
+        // 2. Get Account Link
+        res = await fetch(`${FUNCTIONS_URL}/create-account-link`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${(await sb.auth.getSession()).data.session?.access_token}`,
+          },
+          body: JSON.stringify({
+            return_url: window.location.href,
+            refresh_url: window.location.href,
+          }),
+        });
+        data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to create onboarding link');
+
+        // Redirect club to Stripe-hosted onboarding
+        window.location.href = data.url;
+      } catch (err) {
+        console.error(err);
+        showToast(err.message, 'error');
+      }
+    }
+
+    function renderConnectBanner() {
+      if (!currentProfile) return '';
+      if (currentProfile.stripe_onboarding_complete) {
+        return `<div class="mb-6 bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3 flex items-center gap-3 text-sm text-emerald-800">
+          <i class="fa-solid fa-circle-check text-emerald-600"></i>
+          <span>Stripe Connect is active. You will receive <strong>85%</strong> of every sale automatically.</span>
+        </div>`;
+      }
+      return `<div class="mb-6 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="text-sm text-amber-900">
+          <div class="font-semibold mb-0.5">Connect Stripe to receive payouts</div>
+          <div class="text-amber-800/80">Fans can only purchase once you complete Stripe Express onboarding. You keep 85% of every sale.</div>
+        </div>
+        <button onclick="startStripeConnect()" class="shrink-0 px-5 py-2.5 bg-slate-900 hover:bg-black text-white text-sm font-semibold rounded-xl">
+          Connect with Stripe →
+        </button>
+      </div>`;
+    }
+
+
+
+    // ============================================================
+    // WELCOME / CLUB PERSONALIZATION
+    // ============================================================
+    function initWelcomeModal() {
+      const modal = document.getElementById('welcome-modal');
+      const select = document.getElementById('club-select');
+      const btn = document.getElementById('start-demo-btn');
+
+      if (selectedClub) {
+        // Already chosen – hide modal and apply branding
+        modal.classList.add('hidden');
+        applySelectedClub(selectedClub);
+        return;
+      }
+
+      // Show modal
+      modal.classList.remove('hidden');
+      select.addEventListener('change', () => {
+        btn.disabled = !select.value;
+      });
+    }
+
+    function startInteractiveDemo() {
+      const select = document.getElementById('club-select');
+      const club = select.value;
+      if (!club) return;
+
+      selectedClub = club;
+      localStorage.setItem('lastpitch_selected_club', club);
+
+      // Close modal with a short fade
+      const modal = document.getElementById('welcome-modal');
+      modal.style.transition = 'opacity 0.25s ease';
+      modal.style.opacity = '0';
+      setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.style.opacity = '';
+      }, 250);
+
+      applySelectedClub(club);
+      showToast(`Demo personalized for ${club}`, 'success');
+    }
+
+    function applySelectedClub(club) {
+      // 1. Update branding / titles
+      document.title = `LastPitch for ${club} • Premium Last-Minute Hospitality`;
+
+      // Nav brand text
+      const brandEls = document.querySelectorAll('nav span.font-bold');
+      brandEls.forEach(el => {
+        if (el.textContent.trim() === 'LastPitch' || el.textContent.includes('LastPitch')) {
+          el.textContent = 'LastPitch';
+        }
+      });
+
+      // Add a subtle club indicator next to the brand if not already present
+      let clubBadge = document.getElementById('selected-club-badge');
+      if (!clubBadge) {
+        const brandContainer = document.querySelector('nav .flex.items-center.gap-x-3 > div:last-child');
+        if (brandContainer) {
+          clubBadge = document.createElement('div');
+          clubBadge.id = 'selected-club-badge';
+          clubBadge.className = 'text-[10px] sm:text-[11px] font-semibold text-amber-600 tracking-wide mt-0.5';
+          brandContainer.appendChild(clubBadge);
+        }
+      }
+      if (clubBadge) {
+        clubBadge.textContent = `for ${club}`;
+      }
+
+      // 2. Update Fan View heading
+      const fanHeading = document.querySelector('#fan-pane h1.section-header');
+      if (fanHeading) {
+        fanHeading.innerHTML = `Premium Experiences.<br>Available for ${club}.`;
+      }
+
+      // 3. Update Release Inventory placeholder with realistic fixtures
+      const fixtureInput = document.getElementById('fixture-name');
+      if (fixtureInput) {
+        const opponents = ['Sunderland', 'Wrexham', 'Derby County', 'Bolton Wanderers', 'Portsmouth'];
+        const randomOpp = opponents[Math.floor(Math.random() * opponents.length)];
+        fixtureInput.placeholder = `e.g. ${club} vs ${randomOpp} - Championship`;
+      }
+
+      // 4. Update signup club placeholder
+      const signupClub = document.getElementById('signup-club');
+      if (signupClub) {
+        signupClub.placeholder = `e.g. ${club} Hospitality`;
+      }
+
+      // 5. Store for use in other places (e.g. when releasing inventory we can pre-fill)
+      window.__lastpitchClub = club;
+    }
+
+    // Helper used when opening the release modal – pre-fill a sensible fixture
+    function getDemoFixtureSuggestion() {
+      if (!selectedClub) return '';
+      const opponents = ['Sunderland', 'Wrexham', 'Derby County', 'Bolton Wanderers', 'Portsmouth', 'Lincoln City', 'Stockport County'];
+      const opp = opponents[Math.floor(Math.random() * opponents.length)];
+      return `${selectedClub} vs ${opp}`;
+    }
+
 
     // Boot
     window.onload = initializeApp;
