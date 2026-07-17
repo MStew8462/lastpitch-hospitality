@@ -96,6 +96,14 @@
         <p class="text-slate-400 text-sm mt-2">Premium last-minute hospitality for the EFL</p>
       </div>
       <div class="px-6 sm:px-8 py-6 sm:py-8">
+        <!-- Live crest preview -->
+        <div id="crest-preview" class="flex justify-center mb-5">
+          <div class="w-20 h-20 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden shadow-inner">
+            <img id="crest-preview-img" src="" alt="" class="w-16 h-16 object-contain hidden">
+            <i id="crest-preview-placeholder" class="fa-solid fa-shield-halved text-3xl text-slate-300"></i>
+          </div>
+        </div>
+
         <label class="block text-[11px] font-semibold tracking-widest text-slate-500 mb-2 uppercase">Select your club to personalize the demo</label>
         <div class="relative">
           <select id="club-select" class="w-full appearance-none bg-slate-50 border border-slate-200 focus:border-amber-400 focus:ring-2 focus:ring-amber-100 rounded-2xl px-4 py-3.5 text-sm font-medium text-slate-900 pr-10">
@@ -547,7 +555,7 @@
     // ============================================================
     async function loadProfile() {
       if (!currentUser) return;
-      const { data, error } = await supabase
+      const { data, error } = await sb
         .from('profiles')
         .select('*')
         .eq('id', currentUser.id)
@@ -596,7 +604,7 @@
     async function loadInventory() {
       if (!sb) return;
       try {
-        const { data, error } = await supabase
+        const { data, error } = await sb
           .from('inventory')
           .select(`
             id,
@@ -627,8 +635,8 @@
     }
 
     function setupRealtime() {
-      if (!supabase || realtimeChannel) return;
-      realtimeChannel = supabase
+      if (!sb || realtimeChannel) return;
+      realtimeChannel = sb
         .channel('inventory-live')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory' }, (payload) => {
           console.log('[Realtime]', payload.eventType, payload.new || payload.old);
@@ -1520,8 +1528,118 @@
 
 
     // ============================================================
-    // WELCOME / CLUB PERSONALIZATION
+    // WELCOME / CLUB PERSONALIZATION + CRESTS
     // ============================================================
+
+    // Curated crest URLs (Wikimedia / reliable sources). Fallback generates a clean monogram.
+    const CLUB_CRESTS = {
+      // Championship
+      "Birmingham City": "https://upload.wikimedia.org/wikipedia/en/6/68/Birmingham_City_FC_logo.svg",
+      "Blackburn Rovers": "https://upload.wikimedia.org/wikipedia/en/0/0f/Blackburn_Rovers.svg",
+      "Bristol City": "https://upload.wikimedia.org/wikipedia/en/0/00/Bristol_City_FC.svg",
+      "Charlton Athletic": "https://upload.wikimedia.org/wikipedia/en/5/5a/Charlton_Athletic.svg",
+      "Coventry City": "https://upload.wikimedia.org/wikipedia/en/9/94/Coventry_City_FC_logo.svg",
+      "Derby County": "https://upload.wikimedia.org/wikipedia/en/4/4a/Derby_County_crest.svg",
+      "Hull City": "https://upload.wikimedia.org/wikipedia/en/5/54/Hull_City_A.F.C._logo.svg",
+      "Ipswich Town": "https://upload.wikimedia.org/wikipedia/en/4/43/Ipswich_Town.svg",
+      "Leicester City": "https://upload.wikimedia.org/wikipedia/en/2/2d/Leicester_City_crest.svg",
+      "Middlesbrough": "https://upload.wikimedia.org/wikipedia/en/2/2c/Middlesbrough_FC_crest.svg",
+      "Millwall": "https://upload.wikimedia.org/wikipedia/en/7/71/Millwall_FC_logo.svg",
+      "Norwich City": "https://upload.wikimedia.org/wikipedia/en/8/8c/Norwich_City.svg",
+      "Oxford United": "https://upload.wikimedia.org/wikipedia/en/3/3e/Oxford_United_FC_logo.svg",
+      "Portsmouth": "https://upload.wikimedia.org/wikipedia/en/3/3c/Portsmouth_FC_logo.svg",
+      "Preston North End": "https://upload.wikimedia.org/wikipedia/en/8/82/Preston_North_End_FC.svg",
+      "Queens Park Rangers": "https://upload.wikimedia.org/wikipedia/en/3/31/Queens_Park_Rangers_crest.svg",
+      "Sheffield United": "https://upload.wikimedia.org/wikipedia/en/9/9c/Sheffield_United_FC_logo.svg",
+      "Sheffield Wednesday": "https://upload.wikimedia.org/wikipedia/en/8/88/Sheffield_Wednesday_badge.svg",
+      "Southampton": "https://upload.wikimedia.org/wikipedia/en/c/c9/FC_Southampton.svg",
+      "Stoke City": "https://upload.wikimedia.org/wikipedia/en/2/29/Stoke_City_FC.svg",
+      "Swansea City": "https://upload.wikimedia.org/wikipedia/en/f/f9/Swansea_City_AFC_logo.svg",
+      "Watford": "https://upload.wikimedia.org/wikipedia/en/e/e2/Watford.svg",
+      "West Bromwich Albion": "https://upload.wikimedia.org/wikipedia/en/8/8b/West_Bromwich_Albion.svg",
+      "Wrexham": "https://upload.wikimedia.org/wikipedia/en/3/3d/Wrexham_A.F.C._logo.svg",
+
+      // League One (selection of reliable ones)
+      "AFC Wimbledon": "https://upload.wikimedia.org/wikipedia/en/5/5c/AFC_Wimbledon.svg",
+      "Barnsley": "https://upload.wikimedia.org/wikipedia/en/c/c9/Barnsley_FC.svg",
+      "Blackpool": "https://upload.wikimedia.org/wikipedia/en/d/df/Blackpool_FC_logo.svg",
+      "Bolton Wanderers": "https://upload.wikimedia.org/wikipedia/en/8/82/Bolton_Wanderers_FC_logo.svg",
+      "Bradford City": "https://upload.wikimedia.org/wikipedia/en/3/3c/Bradford_City_AFC.png",
+      "Burton Albion": "https://upload.wikimedia.org/wikipedia/en/5/53/Burton_Albion_FC_logo.svg",
+      "Cardiff City": "https://upload.wikimedia.org/wikipedia/en/3/3c/Cardiff_City_crest.svg",
+      "Doncaster Rovers": "https://upload.wikimedia.org/wikipedia/en/4/4c/Doncaster_Rovers_FC.svg",
+      "Exeter City": "https://upload.wikimedia.org/wikipedia/en/7/71/Exeter_City_FC.svg",
+      "Huddersfield Town": "https://upload.wikimedia.org/wikipedia/en/7/7d/Huddersfield_Town_A.F.C._logo.svg",
+      "Leyton Orient": "https://upload.wikimedia.org/wikipedia/en/2/21/Leyton_Orient_FC_logo.svg",
+      "Lincoln City": "https://upload.wikimedia.org/wikipedia/en/5/58/Lincoln_City_FC_logo.svg",
+      "Luton Town": "https://upload.wikimedia.org/wikipedia/en/9/9d/Luton_Town_logo.svg",
+      "Mansfield Town": "https://upload.wikimedia.org/wikipedia/en/5/5c/Mansfield_Town_FC.svg",
+      "Northampton Town": "https://upload.wikimedia.org/wikipedia/en/8/8c/Northampton_Town_FC_logo.svg",
+      "Peterborough United": "https://upload.wikimedia.org/wikipedia/en/d/d4/Peterborough_United.svg",
+      "Plymouth Argyle": "https://upload.wikimedia.org/wikipedia/en/a/a8/Plymouth_Argyle_F.C._logo.svg",
+      "Port Vale": "https://upload.wikimedia.org/wikipedia/en/5/5f/Port_Vale_logo.svg",
+      "Reading": "https://upload.wikimedia.org/wikipedia/en/1/11/Reading_FC.svg",
+      "Rotherham United": "https://upload.wikimedia.org/wikipedia/en/c/c0/Rotherham_United_FC.svg",
+      "Stevenage": "https://upload.wikimedia.org/wikipedia/en/4/45/Stevenage_Football_Club.png",
+      "Stockport County": "https://upload.wikimedia.org/wikipedia/en/2/29/Stockport_County_FC_logo.svg",
+      "Wigan Athletic": "https://upload.wikimedia.org/wikipedia/en/4/43/Wigan_Athletic.svg",
+      "Wycombe Wanderers": "https://upload.wikimedia.org/wikipedia/en/f/f3/Wycombe_Wanderers_FC_logo.svg",
+
+      // League Two
+      "Accrington Stanley": "https://upload.wikimedia.org/wikipedia/en/6/63/Accrington_Stanley_F.C._logo.svg",
+      "Barnet": "https://upload.wikimedia.org/wikipedia/en/a/a2/Barnet_FC.svg",
+      "Barrow": "https://upload.wikimedia.org/wikipedia/en/5/5b/Barrow_AFC_logo.svg",
+      "Bristol Rovers": "https://upload.wikimedia.org/wikipedia/en/4/47/Bristol_Rovers_F.C._logo.svg",
+      "Bromley": "https://upload.wikimedia.org/wikipedia/en/7/7c/Bromley_F.C._logo.svg",
+      "Cambridge United": "https://upload.wikimedia.org/wikipedia/en/8/86/Cambridge_United_FC.svg",
+      "Cheltenham Town": "https://upload.wikimedia.org/wikipedia/en/c/c3/Cheltenham_Town_F.C._logo.svg",
+      "Chesterfield": "https://upload.wikimedia.org/wikipedia/en/9/9b/Chesterfield_FC_crest.svg",
+      "Colchester United": "https://upload.wikimedia.org/wikipedia/en/4/48/Colchester_United_FC_logo.svg",
+      "Crawley Town": "https://upload.wikimedia.org/wikipedia/en/8/8b/Crawley_Town_FC_logo.svg",
+      "Crewe Alexandra": "https://upload.wikimedia.org/wikipedia/en/9/9d/Crewe_Alexandra.svg",
+      "Fleetwood Town": "https://upload.wikimedia.org/wikipedia/en/2/2d/Fleetwood_Town_FC.svg",
+      "Gillingham": "https://upload.wikimedia.org/wikipedia/en/2/2e/Gillingham_FC_logo.svg",
+      "Grimsby Town": "https://upload.wikimedia.org/wikipedia/en/7/79/Grimsby_Town_FC.svg",
+      "Harrogate Town": "https://upload.wikimedia.org/wikipedia/en/2/2c/Harrogate_Town_A.F.C._logo.svg",
+      "MK Dons": "https://upload.wikimedia.org/wikipedia/en/d/d3/MK_Dons.svg",
+      "Newport County": "https://upload.wikimedia.org/wikipedia/en/4/45/Newport_County_AFC.png",
+      "Notts County": "https://upload.wikimedia.org/wikipedia/en/4/4c/Notts_County_logo.svg",
+      "Oldham Athletic": "https://upload.wikimedia.org/wikipedia/en/4/4c/Oldham_Athletic.svg",
+      "Salford City": "https://upload.wikimedia.org/wikipedia/en/7/75/Salford_City_FC.svg",
+      "Shrewsbury Town": "https://upload.wikimedia.org/wikipedia/en/0/0c/Shrewsbury_Town_FC.svg",
+      "Swindon Town": "https://upload.wikimedia.org/wikipedia/en/a/a3/Swindon_Town_FC.svg",
+      "Tranmere Rovers": "https://upload.wikimedia.org/wikipedia/en/9/9f/Tranmere_Rovers_FC_logo.svg",
+      "Walsall": "https://upload.wikimedia.org/wikipedia/en/e/ef/Walsall_FC.svg"
+    };
+
+    function getClubCrestUrl(clubName) {
+      if (CLUB_CRESTS[clubName]) return CLUB_CRESTS[clubName];
+      // Clean monogram fallback
+      const initials = clubName.split(' ').map(w => w[0]).join('').substring(0, 3);
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&background=0F172A&color=C9A227&bold=true&size=128&font-size=0.4`;
+    }
+
+    function updateCrestPreview(club) {
+      const img = document.getElementById('crest-preview-img');
+      const placeholder = document.getElementById('crest-preview-placeholder');
+      if (!img) return;
+      if (!club) {
+        img.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+        return;
+      }
+      img.src = getClubCrestUrl(club);
+      img.alt = club + ' crest';
+      img.onload = () => {
+        img.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+      };
+      img.onerror = () => {
+        img.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+      };
+    }
+
     function initWelcomeModal() {
       const modal = document.getElementById('welcome-modal');
       const select = document.getElementById('club-select');
@@ -1531,6 +1649,9 @@
         // Already chosen – hide modal and apply branding
         modal.classList.add('hidden');
         applySelectedClub(selectedClub);
+        // Pre-select in the dropdown in case user re-opens later
+        select.value = selectedClub;
+        updateCrestPreview(selectedClub);
         return;
       }
 
@@ -1538,6 +1659,7 @@
       modal.classList.remove('hidden');
       select.addEventListener('change', () => {
         btn.disabled = !select.value;
+        updateCrestPreview(select.value);
       });
     }
 
@@ -1566,36 +1688,48 @@
       // 1. Update branding / titles
       document.title = `LastPitch for ${club} • Premium Last-Minute Hospitality`;
 
-      // Nav brand text
-      const brandEls = document.querySelectorAll('nav span.font-bold');
-      brandEls.forEach(el => {
-        if (el.textContent.trim() === 'LastPitch' || el.textContent.includes('LastPitch')) {
-          el.textContent = 'LastPitch';
-        }
-      });
+      // 2. Update nav brand area with crest + text
+      const brandContainer = document.querySelector('nav .flex.items-center.gap-x-3');
+      if (brandContainer) {
+        // Remove previous crest if present
+        const oldCrest = document.getElementById('nav-club-crest');
+        if (oldCrest) oldCrest.remove();
 
-      // Add a subtle club indicator next to the brand if not already present
+        // Create crest image
+        const crestImg = document.createElement('img');
+        crestImg.id = 'nav-club-crest';
+        crestImg.src = getClubCrestUrl(club);
+        crestImg.alt = club;
+        crestImg.className = 'w-9 h-9 sm:w-10 sm:h-10 object-contain rounded-lg bg-white/90 p-0.5 shadow-sm';
+        crestImg.onerror = function() { this.style.display = 'none'; };
+
+        // Insert crest before the existing logo box or text
+        const firstChild = brandContainer.firstElementChild;
+        brandContainer.insertBefore(crestImg, firstChild);
+      }
+
+      // Club name badge under the brand
       let clubBadge = document.getElementById('selected-club-badge');
       if (!clubBadge) {
-        const brandContainer = document.querySelector('nav .flex.items-center.gap-x-3 > div:last-child');
-        if (brandContainer) {
+        const textContainer = document.querySelector('nav .flex.items-center.gap-x-3 > div:last-child');
+        if (textContainer) {
           clubBadge = document.createElement('div');
           clubBadge.id = 'selected-club-badge';
           clubBadge.className = 'text-[10px] sm:text-[11px] font-semibold text-amber-600 tracking-wide mt-0.5';
-          brandContainer.appendChild(clubBadge);
+          textContainer.appendChild(clubBadge);
         }
       }
       if (clubBadge) {
         clubBadge.textContent = `for ${club}`;
       }
 
-      // 2. Update Fan View heading
+      // 3. Update Fan View heading
       const fanHeading = document.querySelector('#fan-pane h1.section-header');
       if (fanHeading) {
         fanHeading.innerHTML = `Premium Experiences.<br>Available for ${club}.`;
       }
 
-      // 3. Update Release Inventory placeholder with realistic fixtures
+      // 4. Update Release Inventory placeholder
       const fixtureInput = document.getElementById('fixture-name');
       if (fixtureInput) {
         const opponents = ['Sunderland', 'Wrexham', 'Derby County', 'Bolton Wanderers', 'Portsmouth'];
@@ -1603,13 +1737,12 @@
         fixtureInput.placeholder = `e.g. ${club} vs ${randomOpp} - Championship`;
       }
 
-      // 4. Update signup club placeholder
+      // 5. Update signup club placeholder
       const signupClub = document.getElementById('signup-club');
       if (signupClub) {
         signupClub.placeholder = `e.g. ${club} Hospitality`;
       }
 
-      // 5. Store for use in other places (e.g. when releasing inventory we can pre-fill)
       window.__lastpitchClub = club;
     }
 
